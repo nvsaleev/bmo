@@ -1,31 +1,56 @@
-version: '3.4'
-
 services:
 
   pricing_engine:
     command: python gbm.py
     image: pricing_engine
     build: ./pricing_engine
-    # ports:
-    #   - 8000:8000 does it have to expose a port?
     volumes:
       - ./pricing_engine:/app
     depends_on:
       - influx_db
+      - redis
     env_file:
       - ./.env
   
-  # redis:
-  #   image: redis:6-alpine
+  bff:
+    image: bff
+    build: ./bff
+    ports:
+      - "8080:8080" # Map host port 8080 to container port 8080
+    environment:
+      TZ: America/New_York
+      INFLUXDB_PASSWORD: bmo_global123
+      INFLUXDB_V2_ORG: BMO_Global_Markets
+      INFLUXDB_V2_TIMEOUT: 50000
+      INFLUXDB_V2_URL: http://influx_db:8086
+      INFLUXDB_V2_TOKEN: 2S6DPPIEwWHYt2YjkX6fRrXcAY47eok27WQKGnO6JAMiwDM6QnARSrP5sgZDcl3j3k_qPUvf0lLGLgNh7ZZM2A==
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    restart: always
 
   influx_db:
     image: influxdb:2.7-alpine
     ports:
       - 8086:8086
-    volumes:
-      - influxdb_data:/var/lib/influxdb2
+    # volumes:
+    #   - influxdb_data:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: nvsaleev
+      DOCKER_INFLUXDB_INIT_PASSWORD: bmo_global123
+      DOCKER_INFLUXDB_INIT_ORG: BMO_Global_Markets
+      DOCKER_INFLUXDB_INIT_BUCKET: StockPricing
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: 2S6DPPIEwWHYt2YjkX6fRrXcAY47eok27WQKGnO6JAMiwDM6QnARSrP5sgZDcl3j3k_qPUvf0lLGLgNh7ZZM2A==
+      TZ: America/New_York
+      entrypoint: sh -c 'ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && influxd'
 
   
-volumes:
-  influxdb_data:
-  # redis_data:
+# volumes:
+#   influxdb_data:
+#   # redis_data:
