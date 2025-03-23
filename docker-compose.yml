@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+
+  pricing_engine:
+    command: python gbm.py
+    image: pricing_engine
+    build: ./pricing_engine
+    # ports:
+    #   - 8000:8000 does it have to expose a port?
+    volumes:
+      - ./pricing_engine:/app
+    depends_on:
+      - influx_db
+    env_file:
+      - ./.env
+  
+  redis:
+    image: redis:6-alpine
+
+  influx_db:
+    image: influxdb:2.7-alpine
+    ports:
+      - 8086:8086
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+
+  
+volumes:
+  influxdb_data:
+  # redis_data:
