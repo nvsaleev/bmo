@@ -8,21 +8,25 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// type getLeaderResponse struct {
-// 	Total int        `json:"total"`
-// 	Data  []UserInfo `json:"data"`
-// }
+// change datatype to string ??
+type Stock struct {
+	Ticker     string  `json:"ticker"`
+	Drift      float64 `json:"drift"`
+	Volatility float64 `json:"drift"`
+}
 
-// type UserInfo struct {
-// 	UserId string `json:"user_id"`
-// 	Score  int    `json:"score"`
-// 	Rank   int    `json:"rank"`
-// }
+type getStocksResponse struct {
+	Stocks []Stock `json:"stocks"`
+}
 
-// type User struct {
-// 	UserId string `json:"user_id"`
-// 	Score  int    `json:"score"`
-// }
+type StockPrice struct {
+	Price     float64 `json:"price"`
+	Timestamp string  `json:"timestamp"`
+}
+
+type getStockPriceHistoryResponse struct {
+	PriceHistory []StockPrice `json:"price_history"`
+}
 
 func main() {
 
@@ -33,6 +37,22 @@ func main() {
 	r.HandleFunc("/v1/stocks/{userId}", updateStockParams).Methods("PUT")
 
 	http.ListenAndServe(":8003", r)
+}
+
+func getStocks(w http.ResponseWriter, r *http.Request) {
+
+	w.WriteHeader(http.StatusServiceUnavailable)
+	fmt.Fprint(w, "This resource is under development")
+}
+
+func getStockPriceHistory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusServiceUnavailable)
+	fmt.Fprint(w, "This resource is under development")
+}
+
+func updateStockParams(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusServiceUnavailable)
+	fmt.Fprint(w, "This resource is under development")
 }
 
 func updateScore(w http.ResponseWriter, r *http.Request) {
@@ -74,12 +94,6 @@ func getLeaders(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
 	}
-
-}
-
-func getUser(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusServiceUnavailable)
-	fmt.Fprint(w, "This resource is under development")
 
 }
 
