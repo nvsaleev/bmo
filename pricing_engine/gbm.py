@@ -113,9 +113,9 @@ def start_repicing(stock_prices, stocks, last_timestamp):
             sleep(2)
         else:
             update_json = r.lpop("parameter_updates")
-            updates = json.loads(update_json)
-            print("updates", updates)
-            if updates:
+            if update_json:
+                updates = json.loads(update_json)
+                print("updates", updates)
                 update_df = pd.DataFrame.from_dict(updates, orient='index', columns=['volatility', 'drift'])
                 stocks.update(update_df)
 

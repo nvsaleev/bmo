@@ -11,6 +11,20 @@ services:
       - redis
     env_file:
       - ./.env
+  bmo_dashboard:
+    build: ./bmo_dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      TZ: America/New_York
+      BFF_HOST: http://localhost:8080
+      
+    depends_on:
+      - bff
+      - influx_db
+      - redis
+      - pricing_engine
   
   bff:
     image: bff
