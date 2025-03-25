@@ -106,8 +106,8 @@ export default function Home() {
 
   return (
     <main className="flex flex-row h-full w-full">
-      {isPressed && <StockModule selectedTickers={selectedTickers} handleTickerSelection={handleTickerSelection}/>}
-      {(stockToUpdate !== null) && <UpdateModule selectedTicker={stockToUpdate} setStocksParameters={setStocksParameters}/>}
+      {isPressed && <StockModule selectedTickers={selectedTickers} handleTickerSelection={handleTickerSelection} setIsPressed={setIsPressed} />}
+      {(stockToUpdate !== null) && <UpdateModule selectedTicker={stockToUpdate} setStocksParameters={setStocksParameters} setStockToUpdate={setStockToUpdate}/>}
       
       <section className="h-full w-2xl border-r border-neutral-300 shadow p-6 flex flex-col gap-6">
         <button onClick={() => setIsPressed(true)} className="flex flex-row items-center justify-between text-neutral-500 text-lg border border-neutral-300 rounded-lg w-full py-2 px-4 hover:cursor-pointer">

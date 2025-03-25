@@ -63,8 +63,3 @@ services:
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: 2S6DPPIEwWHYt2YjkX6fRrXcAY47eok27WQKGnO6JAMiwDM6QnARSrP5sgZDcl3j3k_qPUvf0lLGLgNh7ZZM2A==
       TZ: America/New_York
       entrypoint: sh -c 'ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && influxd'
-
-  
-# volumes:
-#   influxdb_data:
-#   # redis_data:

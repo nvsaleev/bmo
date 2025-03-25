@@ -5,10 +5,11 @@ import { GrFormClose } from "react-icons/gr";
 
 interface StockModuleProps {
     selectedTickers: string[];
+    setIsPressed: React.Dispatch<React.SetStateAction<boolean>>;
     handleTickerSelection: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export default function StockModule({ selectedTickers, handleTickerSelection }: StockModuleProps) {
+export default function StockModule({ selectedTickers, handleTickerSelection, setIsPressed }: StockModuleProps) {
 
     const [tickers, setTickers] = useState<string[]>([]); //"GOOG", "AAPL", "MSFT", "TSLA", "AMZN", "FB", "NFLX",
     const [searchedTicker, setSearchedTicker] = useState("");
@@ -42,7 +43,7 @@ export default function StockModule({ selectedTickers, handleTickerSelection }: 
     return (
         <div className="fixed w-full h-full bg-bmo-blue/30 flex flex-row pt-16 justify-center z-20">
             <div className="relative bg-neutral-100 w-2xl h-80 rounded-xl p-6 flex flex-col gap-4"  >
-                <GrFormClose className="cursor-pointer size-8 absolute top-4 right-4 text-red-700 hover:scale-100" onClick={() => setSearchedTicker("")}/>
+                <GrFormClose className="cursor-pointer size-8 absolute top-4 right-4 text-red-700 hover:scale-100" onClick={() => setIsPressed(false)}/>
                 <h1 className="text-xl font-bold">Add Ticker</h1>
                 <input className="w-full h-12 p-2 rounded-md border border-neutral-300" type="text" placeholder="Ticker" onChange={(e) => setSearchedTicker(e.target.value)}/>
                 <h2 className="font-bold">Available Tickers:</h2>

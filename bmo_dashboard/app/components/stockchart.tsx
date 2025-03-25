@@ -12,7 +12,7 @@ export default function StockChart({ tickers }: StockChartProps) {
   const [chartData, setChartData] = useState([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Define chart series based on tickers (recomputed only when tickers change)
+  // Define chart series with enhanced tooltip
   const series = useMemo(() => {
     return tickers.map((ticker) => ({
       type: "line",
@@ -22,32 +22,41 @@ export default function StockChart({ tickers }: StockChartProps) {
       marker: { enabled: false },
       tooltip: {
         renderer: (params) => {
-          const { datum, xKey, yKey } = params;
+          const { datum, xKey, yKey, title } = params;
           const date = datum[xKey];
-          const formattedDate = date.toLocaleString(undefined, {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          });
-          const value = datum[yKey];
-          return `${formattedDate}: ${value}`;
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          const hours = String(date.getHours()).padStart(2, "0");
+          const minutes = String(date.getMinutes()).padStart(2, "0");
+          const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+          const value = datum[yKey].toFixed(2);
+          return `${title}: $${value} at ${formattedDate}`;
         },
       },
     }));
   }, [tickers]);
 
-  // Define chart axes (static configuration)
+  // Define chart axes with custom date and currency formatting
   const axes = [
-    { type: "time", position: "bottom" },
-    { type: "number", position: "left" },
+    {
+      type: "time",
+      position: "bottom",
+      label: {
+        format: "%Y-%m-%d %H:%M",
+      },
+    },
+    {
+      type: "number",
+      position: "left",
+      label: {
+        formatter: (params) => `$${params.value.toFixed(2)}`,
+      },
+    },
   ];
 
   // Effect to fetch historical data and set up periodic updates
   useEffect(() => {
-    // Fetch historical data
     const fetchHistoricalData = async () => {
       try {
         if (tickers.length === 0) {
@@ -85,7 +94,6 @@ export default function StockChart({ tickers }: StockChartProps) {
       }
     };
 
-    // Function to fetch feed data
     const getFeed = async (tickers: string[]) => {
       const feedUrl = process.env.BFF_HOST
         ? `${process.env.BFF_HOST}/api/v1/stocks/feed`
@@ -105,7 +113,6 @@ export default function StockChart({ tickers }: StockChartProps) {
       return data;
     };
 
-    // Process feed data into a chart-compatible data point
     const processNewData = (feedData: { feed: { ticker: string; price: number; timestamp: string }[] }) => {
       const newDataPoint: { [key: string]: any } = {
         timestamp: new Date(feedData.feed[0].timestamp),
@@ -116,10 +123,8 @@ export default function StockChart({ tickers }: StockChartProps) {
       return newDataPoint;
     };
 
-    // Fetch initial data
     fetchHistoricalData();
 
-    // Set up interval for periodic updates
     const intervalId = setInterval(async () => {
       try {
         const newData = await getFeed(tickers);
@@ -127,15 +132,13 @@ export default function StockChart({ tickers }: StockChartProps) {
         setChartData((prevData) => [...prevData, newDataPoint]);
       } catch (error) {
         console.error("Failed to fetch feed data:", error);
-        // Continue displaying the chart; only log the error
       }
-    }, 60000); // 60,000 ms = 1 minute
+    }, 60000);
 
-    // Cleanup interval on unmount or when tickers change
     return () => clearInterval(intervalId);
   }, [tickers]);
 
-  // Compute chart options dynamically
+  // Compute chart options with repositioned legend
   const chartOptions = useMemo(() => {
     return {
       data: chartData,
@@ -143,6 +146,7 @@ export default function StockChart({ tickers }: StockChartProps) {
       axes,
       legend: {
         enabled: true,
+        position: "bottom",
       },
       navigator: {
         enabled: true,
@@ -178,7 +182,7 @@ export default function StockChart({ tickers }: StockChartProps) {
   } else {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        Loading...
+        Select for stocks...
       </div>
     );
   }

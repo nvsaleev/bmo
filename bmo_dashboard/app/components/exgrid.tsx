@@ -1,9 +1,8 @@
-// components/GridComponent.tsx
 "use client";
 
-import { GrFormClose, GrDocumentConfig } from "react-icons/gr";
-import { AgGridReact } from 'ag-grid-react';
-import { useState } from "react";
+import { GrDocumentConfig } from "react-icons/gr";
+import { AgGridReact } from "ag-grid-react";
+import { useState, useCallback, useRef } from "react";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -16,86 +15,101 @@ interface Stock {
 }
 
 interface GridComponentProps {
-    stocks: Stock[];
-    removeTicker: (ticker: string) => void;
-    updateTicker: (ticker: string, volatility: number, drift: number) => void;
+  stocks: Stock[];
+  removeTicker: (ticker: string) => void;
+  updateTicker: (ticker: string, volatility: number, drift: number) => void;
 }
 
-export default function GridComponent({ stocks, removeTicker, updateTicker }: GridComponentProps) {
-    // Row Data: The data to be displayed.
-  
-    // Column Definitions: Defines & controls grid columns.
-    const [colDefs, setColDefs] = useState([
-      { field: "ticker" },
-      { field: "volatility" },
-      { field: "drift" },
-      {
-        field: "config",
-        headerName: "update", // Optional: remove header text
-        width: 60, // Fixed width for the close button column
-        cellRenderer: (params: any) => {
-          const handleClose = () => {
-            // Filter out the row with the clicked ticker
-            updateTicker(params.data.ticker, params.data.volatility, params.data.drift);
-          };
-  
-          return (
-            <span
-              onClick={handleClose}
-              title="Update"
-              className="flex flex-row items-center justify-center text-lg cursor-pointer text-bmo-blue hover:text-bmo-dark-blue"
-            >
-              <GrDocumentConfig/> 
-            </span>
+export default function GridComponent({
+  stocks,
+  removeTicker,
+  updateTicker,
+}: GridComponentProps) {
+  const gridRef = useRef<any>(null);
+
+  const [colDefs] = useState([
+    { field: "ticker", flex: 1 },
+    { field: "volatility", flex: 1 },
+    { field: "drift", flex: 1 },
+    {
+      field: "config",
+      headerName: "",
+      width: 60,
+      cellRenderer: (params: any) => {
+        const handleClick = () => {
+          updateTicker(
+            params.data.ticker,
+            params.data.volatility,
+            params.data.drift
           );
-        },
-        sortable: false, // Disable sorting for this column
-        filter: false,   // Disable filtering for this column
+        };
+
+        return (
+          <div
+            onClick={handleClick}
+            title="Update"
+            className="w-full h-full flex flex-row items-center justify-center text-lg cursor-pointer text-bmo-blue hover:text-bmo-dark-blue"
+          >
+            <GrDocumentConfig />
+          </div>
+        );
       },
-      {
-        field: "config",
-        headerName: "close", // Optional: remove header text
-        width: 60, // Fixed width for the close button column
-        cellRenderer: (params: any) => {
-          const handleClose = () => {
-            // Filter out the row with the clicked ticker
-            removeTicker(params.data.ticker);
-          };
-  
-          return (
+      sortable: false,
+      filter: false,
+    },
+    {
+      field: "remove",
+      headerName: "",
+      width: 60,
+      cellRenderer: (params: any) => {
+        const handleClose = () => {
+          removeTicker(params.data.ticker);
+        };
+
+        return (
+          <div
+            onClick={handleClose}
+            title="Update"
+            className="w-full h-full flex flex-row items-center justify-center text-lg cursor-pointer text-bmo-blue hover:text-bmo-dark-blue"
+          >
             <span
               onClick={handleClose}
               title="Close"
-              className="cursor-pointer text-red-700 hover:scale-100"
+              className="cursor-pointer text-red-700 hover:scale-100 mx-auto"
             >
-              ✕ 
+              ✕
             </span>
-          );
-        },
-        sortable: false, // Disable sorting for this column
-        filter: false,   // Disable filtering for this column
+          </div>
+        );
       },
+      sortable: false,
+      filter: false,
+    },
+  ]);
 
-    ]);
-  ;
+  const onGridReady = useCallback((params: any) => {
+    // Store the grid API reference
+    if (gridRef.current) {
+      gridRef.current = params.api;
 
-  const onGridReady = (params: { api: { sizeColumnsToFit: () => void; }; }) => {
-      console.log('Grid API:', params.api);
-      if (params.api) {
-          params.api.sizeColumnsToFit();
-      } else {
-          console.error('Grid API is not available');
-      }
-    };
-  
-    // Container: Defines the grid's theme & dimensions.
-    return (
-        <>
-        <div style={{ width: "100%", height: "100%" }}>
-            <AgGridReact rowData={stocks} columnDefs={colDefs} onGridReady={onGridReady} />
-            
-        </div>
-        </>
-     
-    );
-  };
+      // Use setTimeout to ensure the grid is fully rendered
+      setTimeout(() => {
+        params.api.sizeColumnsToFit();
+      }, 0);
+    }
+  }, []);
+
+  return (
+    <div className="ag-theme-alpine w-full h-full">
+      <AgGridReact
+        ref={gridRef}
+        rowData={stocks}
+        columnDefs={colDefs}
+        onGridReady={onGridReady}
+        defaultColDef={{
+          resizable: true,
+        }}
+      />
+    </div>
+  );
+}

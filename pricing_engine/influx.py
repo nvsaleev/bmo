@@ -22,6 +22,7 @@ def ingest_price_history(price_history: pd.DataFrame):
         for ticker, price in row.items():
             point = Point("stocks").tag("ticker", ticker).field("price", price).time(utc_timestamp, write_precision=WritePrecision.S)
             points.append(point)
+    
     print(f'Writing History {len(points)} points to InfluxDB')
     for i in range(0, len(points), BATCH_SIZE):
         write_points(points[i: i+BATCH_SIZE], bucket="StockPricing")

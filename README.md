@@ -4,7 +4,7 @@
 
 In this takehome, I emphasized the architecting of a scalable containerized distributed system that tolerates eventual consistency within a few seconds. The system is designed to cover a universe of 50,000 stocks with up to a few thousand DAU who monitor a basket of 50 stocks.
 
-Out of scope is extensive testing of the system, GBM model validation (e.g. annualization conventions for volatility and drift), refactoring, and the implementation of advanced charting and animations for smooth UX.
+While "functional", the application is not production-ready &#9786;. Out of scope is extensive testing of the system, GBM model validation (e.g. annualization conventions for volatility and drift), refactoring, and the implementation of advanced charting and animations for smooth UX.
 
 At a high level the application works as follows:
 
@@ -34,7 +34,7 @@ Due to time-limitations, the DATA flow is intirely pull-based. If evetual consis
 
 ## InfluxDB and Redis
 
-`InfluxDB` is a time series database that supports heavy write loads. It also provides monitoring and query capabilities to the pricing team. The dashoard is available at `http://localhost:8086/`.
+`InfluxDB` is a time series database that supports heavy write loads. It also provides monitoring and query capabilities to the pricing team. The dashoard is available at `http://localhost:8086/` username: `nvsaleev` password: `bmo_global123`.
 
 `Redis` is a in-memory data store that is used to store parameter configuration. It also supports a queue that is used push parameter updates to the pricing engine. To respect single resoposibility, the pricing engine updates the parameters in Redis and the BFF server has read-only access.
 
