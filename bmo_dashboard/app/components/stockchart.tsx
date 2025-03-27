@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { AgCharts } from "ag-charts-react";
 
+const pollingFrequency = 4000; // 60000 is 1 minute 6000 is 6 seconds
+
 interface StockChartProps {
   tickers: string[];
 }
@@ -133,7 +135,7 @@ export default function StockChart({ tickers }: StockChartProps) {
       } catch (error) {
         console.error("Failed to fetch feed data:", error);
       }
-    }, 60000);
+    }, pollingFrequency);
 
     return () => clearInterval(intervalId);
   }, [tickers]);

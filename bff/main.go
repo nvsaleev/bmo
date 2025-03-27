@@ -357,10 +357,16 @@ func updateStockParametersInRedis(ctx context.Context, client *redis.Client, upd
 
 	stock.Volatility = updateRequest.Volatility
 	stock.Drift = updateRequest.Drift
+	stock.Ticker = updateRequest.Ticker
 
 	stockJSON, err := json.Marshal(stock)
 	if err != nil {
 		return Stock{}, fmt.Errorf("error marshalling updated stock: %v", err)
+	}
+
+	err = client.RPush("parameter_updates", stockJSON).Err()
+	if err != nil {
+		return Stock{}, fmt.Errorf("error setting updated stock in Redis: %v", err)
 	}
 
 	err = client.Set(key, stockJSON, 0).Err()

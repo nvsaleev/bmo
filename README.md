@@ -14,6 +14,7 @@ To run with Docker Compose:
 
 * `docker compose build`
 * `docker compose up -d`
+* or just `docker compose up --build --force-recreate -d`
 
 ## Pricing Engine
 

@@ -1,3 +1,5 @@
+import redis
+import json
 import pandas as pd
 import pytz
 from os import environ as env
@@ -7,7 +9,7 @@ from datetime import datetime, timezone
 from influxdb_client import InfluxDBClient, Point, WriteOptions, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-BATCH_SIZE = 500
+BATCH_SIZE = 1000
 
 local_tz = pytz.timezone("America/New_York")
 
@@ -60,3 +62,39 @@ def flush_bucket(bucket: str):
             bucket=bucket,
             org=env.get("INFLUXDB_V2_ORG"),
         )
+
+
+def get_stocks():
+
+    # close Redit client with decorator?
+
+    stocks = pd.read_csv('stocks.csv', index_col=0,)
+    stocks = stocks[~stocks.index.duplicated(keep='first')]
+    redis_client = redis.Redis(host=env.get("REDIS_HOST"), port=env.get("REDIS_PORT"), db=env.get("REDIS_DB"))
+    
+    for index, row in stocks.iterrows():
+        row_json = json.dumps(row.to_dict())
+        redis_client.set(index, row_json)
+
+    return stocks
+
+
+def get_redis_client() -> object:
+    return redis.Redis(host=env.get("REDIS_HOST"), port=env.get("REDIS_PORT"), db=env.get("REDIS_DB"))
+
+
+def get_parameter_updates(redis_client) -> dict:
+
+    print("checking for parameter updates...")
+
+    updates = []
+    while (update_data := redis_client.lpop("parameter_updates")) is not None:
+        updates.append(json.loads(update_data))
+    
+    if not updates:
+        return None
+
+    updates_df = pd.DataFrame(updates).set_index('ticker')
+    print("updates_df", updates_df)
+
+    return updates_df
