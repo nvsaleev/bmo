@@ -75,7 +75,7 @@ export default function GridComponent({
             <span
               onClick={handleClose}
               title="Close"
-              className="cursor-pointer text-red-700 hover:scale-100 mx-auto"
+              className="cursor-pointer text-red-700 hover:text-red-500 duration-150 mx-auto"
             >
               ✕
             </span>

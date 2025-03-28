@@ -1,6 +1,5 @@
 from datetime import datetime
 
-TRADING_MINUTES = 390
 TRADNG_DAYS = 252
 TRADING_MINUTES = 390
 DT = 1 / (TRADNG_DAYS * TRADING_MINUTES)

@@ -23,9 +23,9 @@ export default function StockModule({  selectedTicker, setStocksParameters, setS
 
 
     return (
-        <div className="fixed w-full h-full bg-bmo-blue/30 flex flex-row pt-16 justify-center z-20">
-            <div className="relative bg-neutral-100 w-2xl h-80 rounded-xl p-6 flex flex-col gap-4"  >
-                <GrFormClose className="cursor-pointer text-xl size-8 absolute top-4 right-4 text-red-700 hover:scale-100" onClick={() => setStockToUpdate(null)}/>
+        <div className="fixed w-full h-full bg-bmo-blue/30 flex flex-row pt-16 justify-center z-20" onClick={() => setStockToUpdate(null)}>
+            <div className="relative bg-neutral-100 w-2xl h-80 rounded-xl p-6 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}  >
+                <GrFormClose className="cursor-pointer text-xl size-8 absolute top-4 right-4 text-red-700 hover:text-red-500 druration-150" onClick={() => setStockToUpdate(null)}/>
                 <h1 className="text-xl font-bold">Edit Parameters for 
                     <span className="text-bmo-blue">&#32; {selectedTicker.ticker}</span>
                 </h1>
@@ -34,7 +34,6 @@ export default function StockModule({  selectedTicker, setStocksParameters, setS
                     <input className="w-full h-12 p-2 rounded-md border border-neutral-300" type="text" placeholder="Drift" onChange={(e) => setNewDrift(parseFloat(e.target.value))}/>
                 </div>
                 <button className="rounded-lg mt-auto p-2 cursor-pointer border border-bmo-blue hover:shadow-sm hover:border-2 hover:font-bold duration-150" onClick={() => setStocksParameters(selectedTicker.ticker, newDrift, newVolatility)}>Update Ticker</button>
-                
             </div>
         </div>
     );

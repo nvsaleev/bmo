@@ -226,14 +226,11 @@ func getStockPriceHistory(w http.ResponseWriter, r *http.Request) {
         |> range(start: %s, stop: %s)
         |> filter(fn: (r) => r["_measurement"] == "stocks")
         |> filter(fn: (r) => r["_field"] == "price")
-        |> filter(fn: (r) => contains(value: r["ticker"], set: %s))
-        |> aggregateWindow(every: 1m, fn: last, createEmpty: false)
-        |> yield(name: "last")`,
+        |> filter(fn: (r) => contains(value: r["ticker"], set: %s))`,
 		influxBucket,
 		timeRangeStart.Format(time.RFC3339),
 		timeRangeStop.Format(time.RFC3339),
 		tickersFlux)
-
 	log.Printf("Flux Query: %s", fluxQuery) // Log the query for debugging
 
 	// Execute query

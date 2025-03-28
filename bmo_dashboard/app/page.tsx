@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 
 import ExampleGrid from "./components/exgrid";
-import ChartExample from "./components/exchart";
 import useCommandK from "./hooks/useK";
 import StockChart from "./components/stockchart";
 
@@ -97,8 +96,6 @@ export default function Home() {
     configureParameters()
   }
 
- 
-
   function updateTicker(ticker: string, volatility: number, drift: number) {
     const newStock: Stocks = {ticker: ticker, open: 0, drift: drift, volatility: volatility};
     setStockToUpdate(newStock)
@@ -106,22 +103,29 @@ export default function Home() {
 
   return (
     <main className="flex flex-row h-full w-full">
+
       {isPressed && <StockModule selectedTickers={selectedTickers} handleTickerSelection={handleTickerSelection} setIsPressed={setIsPressed} />}
       {(stockToUpdate !== null) && <UpdateModule selectedTicker={stockToUpdate} setStocksParameters={setStocksParameters} setStockToUpdate={setStockToUpdate}/>}
       
       <section className="h-full w-2xl border-r border-neutral-300 shadow p-6 flex flex-col gap-6">
-        <button onClick={() => setIsPressed(true)} className="flex flex-row items-center justify-between text-neutral-500 text-lg border border-neutral-300 rounded-lg w-full py-2 px-4 hover:cursor-pointer">
-          <p>Add ticker</p>
-          <div>&#8984; K </div>
-        </button>
-        {/* <p>Selected Tickers: {selectedTickers.join(", ")}</p>
-        <p>Stocks: {stocks.map((stock) => stock.ticker + " - " + stock.volatility + ", " + stock.drift).join(", ")}</p> */}
+        <SearchBar setIsPressed={setIsPressed}/>
+        
         <ExampleGrid stocks={stocks} removeTicker={removeTicker} updateTicker={updateTicker}/>
       </section>
       <section className="w-full h-full p-6 flex flex-row items-center justify-center">
         <StockChart tickers={selectedTickers}/>
       </section>
     </main>
+  );
+}
+
+
+function SearchBar({ setIsPressed }: { setIsPressed: React.Dispatch<React.SetStateAction<boolean>> }) {
+  return (
+    <button onClick={() => setIsPressed(true)} className="flex flex-row items-center justify-between text-neutral-500 text-lg border border-neutral-300 rounded-lg w-full py-2 px-4 hover:cursor-pointer hover:shadow">
+      <p>Add ticker</p>
+      <div>&#8984; K </div>
+    </button>
   );
 }
 

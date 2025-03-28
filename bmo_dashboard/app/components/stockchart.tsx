@@ -97,6 +97,7 @@ export default function StockChart({ tickers }: StockChartProps) {
     };
 
     const getFeed = async (tickers: string[]) => {
+  
       const feedUrl = process.env.BFF_HOST
         ? `${process.env.BFF_HOST}/api/v1/stocks/feed`
         : "http://localhost:8080/api/v1/stocks/feed";
@@ -128,6 +129,9 @@ export default function StockChart({ tickers }: StockChartProps) {
     fetchHistoricalData();
 
     const intervalId = setInterval(async () => {
+      if (tickers.length === 0 ) {
+        return;
+      }
       try {
         const newData = await getFeed(tickers);
         const newDataPoint = processNewData(newData);
@@ -184,7 +188,7 @@ export default function StockChart({ tickers }: StockChartProps) {
   } else {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        Select for stocks...
+        Select stocks...
       </div>
     );
   }

@@ -1,7 +1,7 @@
 services:
 
   pricing_engine:
-    command: python gbm.py
+    command: python bmo_pricing_engine.py
     image: pricing_engine
     build: ./pricing_engine
     volumes:
