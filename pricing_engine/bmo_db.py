@@ -11,7 +11,7 @@ from influxdb_client import InfluxDBClient, Point, WriteOptions, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 CONNECTION_TIMEOUT = 15 # seconds
-BATCH_SIZE = 1000 # Optimize for batch size later
+BATCH_SIZE = 5000 # Optimize for batch size later
 UPDATE_QUEUE = "parameter_updates"
 STOCK_PRICING_BUCKET = "StockPricing"
 
@@ -105,7 +105,8 @@ def write_points(points: list, influx_client: object, bucket: str):
 
 
 def flush_bucket(bucket: str):
-    with get_influx_client() as client:
+    influx_client = get_influx_client()
+    with influx_client as client:
         delete_api = client.delete_api()
         delete_api.delete(
             start="1970-01-01T00:00:00Z",  # Delete from the beginning of time

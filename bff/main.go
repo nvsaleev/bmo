@@ -63,24 +63,6 @@ type getFeedResponse struct {
 	Feed []StockPrice `json:"feed"`
 }
 
-func enableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Set CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")    // Allow Next.js origin
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS") // Add POST
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")            // Adjust headers as needed
-
-		// Handle preflight OPTIONS request
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		// Pass to the next handler
-		next.ServeHTTP(w, r)
-	})
-}
-
 func main() {
 
 	rdb := redis.NewClient(&redis.Options{
@@ -308,11 +290,34 @@ func getStockPriceHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllTickersFromRedis(ctx context.Context, client *redis.Client) ([]string, error) {
-	keys, err := client.Keys("*").Result() // Get all keys
-	if err != nil {
-		return nil, fmt.Errorf("error getting keys from redis: %w", err)
+	// Use SCAN instead of KEYS for better performance in production
+	var tickers []string
+	var cursor uint64
+
+	for {
+		var keys []string
+		var err error
+
+		// Scan keys in batches (pagination)
+		keys, cursor, err = client.Scan(cursor, "*", 100).Result()
+		if err != nil {
+			return nil, fmt.Errorf("error scanning keys from redis: %w", err)
+		}
+
+		// Filter during iteration
+		for _, key := range keys {
+			if !strings.Contains(key, "parameter_updates") {
+				tickers = append(tickers, key)
+			}
+		}
+
+		// Exit when we've scanned all keys
+		if cursor == 0 {
+			break
+		}
 	}
-	return keys, nil
+
+	return tickers, nil
 }
 
 func getStockParametersFromRedis(ctx context.Context, client *redis.Client, keys []string) ([]Stock, error) {
@@ -476,4 +481,22 @@ func getFeed(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error encoding response: %v", err), http.StatusInternalServerError)
 		return
 	}
+}
+
+func enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")    // Allow Next.js origin
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS") // Add POST
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")            // Adjust headers as needed
+
+		// Handle preflight OPTIONS request
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Pass to the next handler
+		next.ServeHTTP(w, r)
+	})
 }

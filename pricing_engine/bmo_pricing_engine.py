@@ -78,7 +78,7 @@ def start_repricing(stocks: pd.DataFrame, stock_prices: pd.Series, last_timestam
         elif last_timestamp > pd.Timestamp(datetime.now(), tz=time_zone) - one_minute:
             sleep(2)
         else:
-            if (parameter_updates := bmo_db.get_parameter_updates(redis_client)):
+            if (parameter_updates := bmo_db.get_parameter_updates(redis_client)) is not None:
                 stocks.update(parameter_updates)
 
             stock_prices_next = geometric_brownian_motion(stock_prices, stocks)
