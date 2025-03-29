@@ -3,29 +3,28 @@
 import { GrDocumentConfig } from "react-icons/gr";
 import { AgGridReact } from "ag-grid-react";
 import { useState, useCallback, useRef } from "react";
-import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+import { AllCommunityModule, ModuleRegistry, ICellRendererParams, GridReadyEvent} from "ag-grid-community";
+import { Stock } from "../types";
+
+
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-interface Stock {
-  ticker: string;
-  open: number;
-  drift: number;
-  volatility: number;
+
+
+interface StockGridProps {
+  selectedStocks: Stock[];
+  removeStock: (ticker: string) => void;
+  setStockToUpdate: (stockToUpdate: Stock | null) => void;
 }
 
-interface GridComponentProps {
-  stocks: Stock[];
-  removeTicker: (ticker: string) => void;
-  updateTicker: (ticker: string, volatility: number, drift: number) => void;
-}
+export default function StockGrid({
+  selectedStocks,
+  removeStock,
+  setStockToUpdate,
+}: StockGridProps) {
 
-export default function GridComponent({
-  stocks,
-  removeTicker,
-  updateTicker,
-}: GridComponentProps) {
-  const gridRef = useRef<any>(null);
+  const gridRef = useRef<AgGridReact>(null);
 
   const [colDefs] = useState([
     { field: "ticker", flex: 1 },
@@ -35,13 +34,10 @@ export default function GridComponent({
       field: "config",
       headerName: "",
       width: 60,
-      cellRenderer: (params: any) => {
+      cellRenderer: (params: ICellRendererParams) => {
         const handleClick = () => {
-          updateTicker(
-            params.data.ticker,
-            params.data.volatility,
-            params.data.drift
-          );
+          const newStock: Stock = {ticker: params.data.ticker, volatility: params.data.volatility, drift: params.data.drift, open: params.data.open };
+          setStockToUpdate(newStock);
         };
 
         return (
@@ -61,9 +57,9 @@ export default function GridComponent({
       field: "remove",
       headerName: "",
       width: 60,
-      cellRenderer: (params: any) => {
+      cellRenderer: (params: ICellRendererParams) => {
         const handleClose = () => {
-          removeTicker(params.data.ticker);
+          removeStock(params.data.ticker);
         };
 
         return (
@@ -87,10 +83,10 @@ export default function GridComponent({
     },
   ]);
 
-  const onGridReady = useCallback((params: any) => {
+  const onGridReady = useCallback((params: GridReadyEvent) => {
     // Store the grid API reference
     if (gridRef.current) {
-      gridRef.current = params.api;
+      gridRef.current.api = params.api;
 
       // Use setTimeout to ensure the grid is fully rendered
       setTimeout(() => {
@@ -103,7 +99,7 @@ export default function GridComponent({
     <div className="ag-theme-alpine w-full h-full">
       <AgGridReact
         ref={gridRef}
-        rowData={stocks}
+        rowData={selectedStocks}
         columnDefs={colDefs}
         onGridReady={onGridReady}
         defaultColDef={{

@@ -1,25 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const useCommandK = () => {
+export default function useCommandK(){
+
   const [isPressed, setIsPressed] = useState(false);
 
-  const handleKeyDown = useCallback((event) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
       setIsPressed(true);
     }
   }, []);
 
-  const handleKeyUp = useCallback((event) => {
+  const handleKeyUp = useCallback((event: KeyboardEvent) => {
     if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
       setIsPressed(false);
     }
   }, []);
 
-//   const resetPressed = useCallback(() => {
-//     setIsPressed(false);
-//   }, []);
 
-  const handleEsc = useCallback((event) => {
+  const handleEsc = useCallback((event: KeyboardEvent) => {
     if (event.key === 'Escape') {
         setIsPressed(false);
     }
@@ -35,9 +33,7 @@ const useCommandK = () => {
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('keydown', handleEsc);
     };
-  }, [handleKeyDown, handleKeyUp]);
+  }, [handleKeyDown, handleKeyUp, handleEsc]);
 
   return [isPressed, setIsPressed];
 };
-
-export default useCommandK;

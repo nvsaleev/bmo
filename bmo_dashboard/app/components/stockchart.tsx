@@ -6,13 +6,15 @@ import { AgCharts } from "ag-charts-react";
 const pollingFrequency = 4000; // 60000 is 1 minute 6000 is 6 seconds
 
 interface StockChartProps {
-  tickers: string[];
+  selectedStocks: Stock[];
 }
 
-export default function StockChart({ tickers }: StockChartProps) {
+export default function StockChart({ selectedStocks }: StockChartProps) {
   // State for chart data and error handling
   const [chartData, setChartData] = useState([]);
   const [error, setError] = useState<string | null>(null);
+
+  const tickers = selectedStocks.map((stock) => stock.ticker);
 
   // Define chart series with enhanced tooltip
   const series = useMemo(() => {
@@ -37,9 +39,9 @@ export default function StockChart({ tickers }: StockChartProps) {
         },
       },
     }));
-  }, [tickers]);
+  }, [selectedStocks]);
 
-  // Define chart axes with custom date and currency formatting
+  // efine chart axes with custom date and currency formatting
   const axes = [
     {
       type: "time",
@@ -142,7 +144,7 @@ export default function StockChart({ tickers }: StockChartProps) {
     }, pollingFrequency);
 
     return () => clearInterval(intervalId);
-  }, [tickers]);
+  }, [selectedStocks]);
 
   // Compute chart options with repositioned legend
   const chartOptions = useMemo(() => {

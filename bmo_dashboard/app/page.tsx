@@ -1,132 +1,91 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-import ExampleGrid from "./components/exgrid";
-import useCommandK from "./hooks/useK";
-import StockChart from "./components/stockchart";
+import useCommandK from "./hooks/useCommandK";
 
-import StockModule from "./components/stockmodule";
-import UpdateModule from "./components/updatemodule";
+import SearchBar from "./components/SearchBar";
+import StockGrid from "./components/StockGrid";
+import StockChart from "./components/StockChart";
+import StockSearchModule from "./components/StockSearchModule";
+import ParameterUpdateModule from "./components/ParameterUpdateModule";
 
-interface Stocks {
-  ticker: string;
-  open: number;
-  drift: number;
-  volatility: number;
-}
-
+import { Stock } from "./types";
+import { fetchStockParameters, updateTickerParameters } from "./api/pricing";
 
 export default function Home() {
 
   const [isPressed, setIsPressed] = useCommandK();
-  const [updateCount, setUpdateCount] = useState(0);
-  const [stockToUpdate, setStockToUpdate] = useState<Stocks | null>(null);
-  const [stocks, setStocks] = useState<Stocks[]>([]);
-  const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
+  const [selectedStocks, setSelectedStocks] = useState<Stock[]>([]);
+  const [stockToUpdate, setStockToUpdate] = useState<Stock | null>(null);
 
-  const handleTickerSelection = (newTicker: string) => {
-    setSelectedTickers((prevTickers) => {
-      if (!prevTickers.includes(newTicker)) {
-        return [...prevTickers, newTicker]; // Add the new ticker
-      }
-      return prevTickers; // Return the previous state if the ticker already exists
-    });
-    
-  };
 
-  useEffect(() => {
-    updateStocks(selectedTickers);
-  }, [selectedTickers, updateCount]); 
-
-  const removeTicker = (tickerToRemove: string) => {
-    setSelectedTickers((prevTickers) =>
-      prevTickers.filter((ticker) => ticker !== tickerToRemove)
+  function removeStock(tickerToRemove: string) {
+    setSelectedStocks((prevSelectedStocks) =>
+      prevSelectedStocks.filter((s) => s.ticker !== tickerToRemove)
     );
   };
 
-  function updateStocks(tickers: string[]) {
-    const fetchData = async () => {
-      try {
-        const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks/parameters` : 'http://localhost:8080/api/v1/stocks/parameters';
-        console.log(stocksUrl)
-        console.log(JSON.stringify({ tickers: tickers }))
-        const response = await fetch(stocksUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json', 
-          },
-          body: JSON.stringify({ tickers: tickers }), // Convert tickers to JSON
-        } );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log(data)
-        setStocks(data["stocks"]);
-      } catch (error) {
-        console.log(error)
+  function addStock(tickerToAdd: string) {
+    async function updateSelectedStocks() {
+      const newStocks = await fetchStockParameters([tickerToAdd, ]);
+      if (newStocks.length !== 1) {
+        throw new Error("Cannot add a stock");
       }
+      setSelectedStocks((prevSelectedStocks) => [...prevSelectedStocks, newStocks[0]]);
+    }
+    updateSelectedStocks();
+  };
+
+  function updateAllStocks() {
+    async function updateSelectedStocks() {
+      const tickers = selectedStocks.map((stock) => stock.ticker);
+      const newStocks = await fetchStockParameters(tickers);
+      setSelectedStocks(newStocks);
+    
+    }
+    updateSelectedStocks();
+  }
+
+  function updateStockParameters(ticker: string, newDrift: number,newVolatility: number) {
+    async function configureParameters() {
+      await updateTickerParameters(ticker, newDrift, newVolatility);
+      setStockToUpdate(null);
+      updateAllStocks();
     };
-    fetchData()
+    configureParameters();
   }
 
-  function setStocksParameters(ticker: string, drift: number, volatility: number) {
-    const configureParameters = async () => {
-      try {
-        const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks/parameters` : 'http://localhost:8080/api/v1/stocks/parameters';
-
-        const response = await fetch(stocksUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json', 
-          },
-          body: JSON.stringify({ ticker: ticker, drift: drift, volatility: volatility }),
-        } );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        setUpdateCount((prevCount) => prevCount + 1);
-      } catch (error) {
-        console.log(error)
-      }
-      setStockToUpdate(null)
-    };
-    configureParameters()
-  }
-
-  function updateTicker(ticker: string, volatility: number, drift: number) {
-    const newStock: Stocks = {ticker: ticker, open: 0, drift: drift, volatility: volatility};
-    setStockToUpdate(newStock)
-  }
 
   return (
     <main className="flex flex-row h-full w-full">
-
-      {isPressed && <StockModule selectedTickers={selectedTickers} handleTickerSelection={handleTickerSelection} setIsPressed={setIsPressed} />}
-      {(stockToUpdate !== null) && <UpdateModule selectedTicker={stockToUpdate} setStocksParameters={setStocksParameters} setStockToUpdate={setStockToUpdate}/>}
       
+      {isPressed && (
+        <StockSearchModule
+          selectedStocks={selectedStocks}
+          handleTickerSelection={addStock}
+          setIsPressed={setIsPressed}
+        />
+      )}
+      {stockToUpdate !== null && (
+        <ParameterUpdateModule
+          setStockToUpdate={setStockToUpdate}
+          stockToUpdate={stockToUpdate}
+          updateStockParameters={updateStockParameters}
+        />
+      )}
+
       <section className="h-full w-2xl border-r border-neutral-300 shadow p-6 flex flex-col gap-6">
-        <SearchBar setIsPressed={setIsPressed}/>
-        
-        <ExampleGrid stocks={stocks} removeTicker={removeTicker} updateTicker={updateTicker}/>
+        <SearchBar setIsPressed={setIsPressed} />
+        <StockGrid
+          selectedStocks={selectedStocks}
+          removeStock={removeStock}
+          setStockToUpdate={setStockToUpdate}
+        />
       </section>
       <section className="w-full h-full p-6 flex flex-row items-center justify-center">
-        <StockChart tickers={selectedTickers}/>
+        <StockChart selectedStocks={selectedStocks} />
       </section>
     </main>
   );
 }
-
-
-function SearchBar({ setIsPressed }: { setIsPressed: React.Dispatch<React.SetStateAction<boolean>> }) {
-  return (
-    <button onClick={() => setIsPressed(true)} className="flex flex-row items-center justify-between text-neutral-500 text-lg border border-neutral-300 rounded-lg w-full py-2 px-4 hover:cursor-pointer hover:shadow">
-      <p>Add ticker</p>
-      <div>&#8984; K </div>
-    </button>
-  );
-}
-
-

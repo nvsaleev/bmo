@@ -2,43 +2,31 @@
 
 import { useState, useEffect } from "react";
 import { GrFormClose } from "react-icons/gr";
+import { Stock } from "../types";
+
+import { fetchAllTickers } from "../api/pricing";
 
 interface StockModuleProps {
-    selectedTickers: string[];
-    setIsPressed: React.Dispatch<React.SetStateAction<boolean>>;
-    handleTickerSelection: React.Dispatch<React.SetStateAction<string[]>>;
+    selectedStocks: Stock[];
+    setIsPressed: React.Dispatch<React.SetStateAction<boolean>>
+    handleTickerSelection: (tickerToAdd: string) => void;
 }
 
-export default function StockModule({ selectedTickers, handleTickerSelection, setIsPressed }: StockModuleProps) {
+export default function StockSearchModule({ selectedStocks, handleTickerSelection, setIsPressed }: StockModuleProps) {
 
     const [tickers, setTickers] = useState<string[]>([]); //"GOOG", "AAPL", "MSFT", "TSLA", "AMZN", "FB", "NFLX",
     const [searchedTicker, setSearchedTicker] = useState("");
-
-
-
+   
+    // Fetch available tickers from the backend
     useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks` : 'http://localhost:8080/api/v1/stocks';
-            console.log(stocksUrl)
- 
-            const response = await fetch(stocksUrl);
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log(data)
-            setTickers(data["tickers"]);
-          } catch (error) {
-            console.log(error)
-          }
-        };
-    
-        fetchData(); // Call the async function
+        const fetchTickers = async () => setTickers(await fetchAllTickers());
+        fetchTickers();
     }, []); // Empty dependency array ensures this runs only once on mount
-
     
-    
+    function onTickerSelection(ticker: string) {
+      handleTickerSelection(ticker);
+      setTickers((prevTickers) => prevTickers.filter((t) => t !== ticker));
+    }
 
     return (
         <div onClick={() => setIsPressed(false)} className="fixed w-full h-full bg-bmo-blue/30 flex flex-row pt-16 justify-center z-20">
@@ -48,7 +36,7 @@ export default function StockModule({ selectedTickers, handleTickerSelection, se
                 <input className="w-full h-12 p-2 rounded-md border border-neutral-300" type="text" placeholder="Search ticker..." onChange={(e) => setSearchedTicker(e.target.value)}/>
                 <h2 className="font-bold">Available Tickers:</h2>
                 <ul className="flex flex-col gap-2">
-                    {selectMatchingPrefix(tickers, searchedTicker, selectedTickers).map((ticker) => <li onClick={() => handleTickerSelection(ticker)} key={ticker} className="rounded-lg hover:bg-neutral-200 p-2 hover:cursor-pointer">{ticker}</li>)}
+                  {selectMatchingPrefix(tickers, searchedTicker, selectedStocks).map((ticker) => <li onClick={() => onTickerSelection(ticker)} key={ticker} className="rounded-lg hover:bg-neutral-200 p-2 hover:cursor-pointer">{ticker}</li>)}
                 </ul>
             </div>
         </div>
@@ -56,11 +44,13 @@ export default function StockModule({ selectedTickers, handleTickerSelection, se
 }
 
 
-function selectMatchingPrefix(strings: string[], prefix: string, selectedTickers: string[], n: number=3): string[] {
+function selectMatchingPrefix(strings: string[], prefix: string, selectedStocks: Stock[], n: number=3): string[] {
     
     if (!strings || n <= 1) {
       return [];
     }
+
+    const selectedTickers = selectedStocks.length > 0 ? selectedStocks.map((stock) => stock.ticker) : [];
 
     if (!prefix) {
         return strings.filter((str) => !selectedTickers.includes(str)).slice(0, Math.min(n, strings.length));
