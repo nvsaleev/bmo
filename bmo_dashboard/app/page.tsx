@@ -59,22 +59,6 @@ export default function Home() {
 
   return (
     <main className="flex flex-row h-full w-full">
-      
-      {isPressed && (
-        <StockSearchModule
-          selectedStocks={selectedStocks}
-          handleTickerSelection={addStock}
-          setIsPressed={setIsPressed}
-        />
-      )}
-      {stockToUpdate !== null && (
-        <ParameterUpdateModule
-          setStockToUpdate={setStockToUpdate}
-          stockToUpdate={stockToUpdate}
-          updateStockParameters={updateStockParameters}
-        />
-      )}
-
       <section className="h-full w-2xl border-r border-neutral-300 shadow p-6 flex flex-col gap-6">
         <SearchBar setIsPressed={setIsPressed} />
         <StockGrid
@@ -86,6 +70,23 @@ export default function Home() {
       <section className="w-full h-full p-6 flex flex-row items-center justify-center">
         <StockChart selectedStocks={selectedStocks} />
       </section>
+
+      {isPressed && (
+        <StockSearchModule
+          selectedStocks={selectedStocks}
+          handleStockSelection={addStock}
+          setIsPressed={setIsPressed}
+        />
+      )}
+
+      {stockToUpdate !== null && (
+        <ParameterUpdateModule
+          setStockToUpdate={setStockToUpdate}
+          stockToUpdate={stockToUpdate}
+          updateStockParameters={updateStockParameters}
+        />
+      )}
+      
     </main>
   );
 }

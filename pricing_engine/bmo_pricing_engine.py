@@ -76,8 +76,10 @@ def start_repricing(stocks: pd.DataFrame, stock_prices: pd.Series, last_timestam
         if now < trading_start or now > trading_end:
             break
         elif last_timestamp > pd.Timestamp(datetime.now(), tz=time_zone) - one_minute:
-            sleep(2)
+            # for better performance implement geometric sleep time as max(1, min(60, (now-last_timestamp/2)))
+            sleep(1)
         else:
+            
             if (parameter_updates := bmo_db.get_parameter_updates(redis_client)) is not None:
                 stocks.update(parameter_updates)
 

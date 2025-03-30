@@ -2,7 +2,7 @@ import { Stock, StockPriceHistory, FeedData } from "../types";
 
 export async function fetchStockParameters(tickers: string[]): Promise<Stock[]> {
 
-    const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks/parameters` : "http://localhost:8080/api/v1/stocks/parameters";
+    const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks` : "http://localhost:8080/api/v1/stocks";
     const response = await fetch(stocksUrl, {
       method: "POST",
       headers: {
@@ -21,7 +21,7 @@ export async function fetchStockParameters(tickers: string[]): Promise<Stock[]> 
   }
   
 export async function updateTickerParameters(ticker: string, newDrift: number, newVolatility: number) {
-    const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks/parameters` : "http://localhost:8080/api/v1/stocks/parameters";
+    const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks` : "http://localhost:8080/api/v1/stocks";
     const response = await fetch(stocksUrl, {
       method: "PUT",
       headers: {
@@ -41,7 +41,7 @@ export async function updateTickerParameters(ticker: string, newDrift: number, n
 
 export async function fetchAllTickers(): Promise<string[]> {
 
-  const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks` : 'http://localhost:8080/api/v1/stocks';
+  const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/tickers` : 'http://localhost:8080/api/v1/tickers';
   const response = await fetch(stocksUrl);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);

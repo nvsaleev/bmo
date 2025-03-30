@@ -8,13 +8,13 @@ import { fetchAllTickers } from "../api/pricing";
 
 interface StockModuleProps {
     selectedStocks: Stock[];
+    handleStockSelection: (tickerToAdd: string) => void;
     setIsPressed: React.Dispatch<React.SetStateAction<boolean>>
-    handleTickerSelection: (tickerToAdd: string) => void;
 }
 
-export default function StockSearchModule({ selectedStocks, handleTickerSelection, setIsPressed }: StockModuleProps) {
+export default function StockSearchModule({ selectedStocks, handleStockSelection: handleTickerSelection, setIsPressed }: StockModuleProps) {
 
-    const [tickers, setTickers] = useState<string[]>([]); //"GOOG", "AAPL", "MSFT", "TSLA", "AMZN", "FB", "NFLX",
+    const [tickers, setTickers] = useState<string[]>([]); 
     const [searchedTicker, setSearchedTicker] = useState("");
    
     // Fetch available tickers from the backend
