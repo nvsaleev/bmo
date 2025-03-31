@@ -84,6 +84,7 @@ export default function StockChart({ selectedStocks }: StockChartProps) {
       console.log("Adding new price point");
       chartLastTimestampRef.current = lastTime;
       setChartData((prevPriceData) => [...prevPriceData, newPricePoint] as PriceDataPoint[]);
+
     }, pollingFrequency);
 
     return () => clearInterval(intervalId);

@@ -27,13 +27,13 @@ export default function StockGrid({
   const gridRef = useRef<AgGridReact>(null);
 
   const [colDefs] = useState([
-    { field: "ticker", flex: 1, headerStyle: { fontWeight: 'bold' } },
-    { field: "volatility", flex: 1, headerStyle: { fontWeight: 'bold' } },
-    { field: "drift", flex: 1, headerStyle: { fontWeight: 'bold' } },
+    { field: "ticker",  flex: 3, headerStyle: { fontWeight: 'bold' } }, //  c
+    { field: "volatility",  flex: 3, headerStyle: { fontWeight: 'bold' } },
+    { field: "drift",  flex: 3,headerStyle: { fontWeight: 'bold' } },
     {
       field: "config",
       headerName: "",
-      width: 60,
+      flex: 2,
       cellRenderer: (params: ICellRendererParams) => {
         const handleClick = () => {
           const newStock: Stock = {ticker: params.data.ticker, volatility: params.data.volatility, drift: params.data.drift, open: params.data.open };
@@ -56,7 +56,7 @@ export default function StockGrid({
     {
       field: "remove",
       headerName: "",
-      width: 60,
+      flex: 2,
       cellRenderer: (params: ICellRendererParams) => {
         const handleClose = () => {
           removeStock(params.data.ticker);
@@ -90,7 +90,7 @@ export default function StockGrid({
 
       // Use setTimeout to ensure the grid is fully rendered
       setTimeout(() => {
-        params.api.sizeColumnsToFit();
+        return // params.api.sizeColumnsToFit();
       }, 0);
     }
   }, []);
