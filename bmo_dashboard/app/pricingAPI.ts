@@ -1,4 +1,4 @@
-import { Stock, StockPriceHistory, FeedData } from "../types";
+import { Stock, StockPriceHistory, FeedData } from "./types";
 
 export async function fetchStockParameters(tickers: string[]): Promise<Stock[]> {
 
@@ -66,7 +66,6 @@ export async function getFeed(tickers: string[]): Promise<FeedData> {
   }
 
   const data: FeedData = await response.json();
-  console.log("Feed data:", data);
   return data;
 };
 
@@ -84,6 +83,5 @@ export async function getPriceHistory(tickers: string[]): Promise<StockPriceHist
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   const data: StockPriceHistory = await response.json();
-  console.log("Price history data:", data);
   return data;
 };

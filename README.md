@@ -2,7 +2,7 @@
 
 ## Overview & Assumptions
 
-In this takehome, I emphasized the architecting of a scalable containerized distributed system that tolerates eventual consistency within a few seconds. The system is designed to support a universe of 50,000 stocks with up to a few thousand DAU who monitor a basket of 50 stocks. At a high level, the application works as follows:
+In practice, the ecosystem of trading analytics involves differently organized teams using different technologies. For this reason, in this takehome, I emphasized the architecting of an event-driven containerized distributed system that tolerates eventual consistency within a few seconds. The system is designed to support a universe of 50,000 stocks with up to a few thousand DAU who monitor a basket of 50 stocks. At a high level, the application works as follows:
 
 ![Alt text for the image](system_overview.png)
 
@@ -12,7 +12,7 @@ While "functional", the application is not production-ready &#9786;. Out of scop
 
 ## Pricing Engine
 
-Pricing of securities will likely involve integrating financial models that the quant team built with `Python` data stack. For this reason, the pricing engine is run as an independently deployable and scalable `Python` process.
+Pricing of securities will likely involve integrating financial models that the quant team built with `Python` data stack. For this reason, the pricing engine is run as an independently-scalable and independently-deployable `Python` process. This provides loose coupling (change price generation without affecting the frontend, data access even if the engine is down) and strong conherence (the analytics team is not concerned with serving frontend).
 
 > Deviated from specification: generate prices only for stocks selected by users in the frontend
 
@@ -24,7 +24,9 @@ Following GBM formula, ![Equation](<https://latex.codecogs.com/svg.latex?S_{t+1}
 
 ## InfluxDB and Redis
 
-`InfluxDB` is a time series database that supports heavy write loads. It also provides monitoring and query capabilities to the pricing team. The dashoard is available at `http://localhost:8086/`. A high number of tickers can create cardinality and performance issues, especially versions priot to 3.0. Query limitation can create chalanges for complex fincial analysis. Additionally, the trading team is likely to be more familiar with tradional time-series databases like KDB+.
+InfluxDB and Redis implement event driven communication betwen the pricing engine and the fronteds. For example, frontend may react to new pricing data event and pricing engine may react ot new parameter updates event.
+
+`InfluxDB` is a time series database that supports heavy write loads. It also provides monitoring and query capabilities to the pricing team. The dashoard is available at `http://localhost:8086/`. A high number of tickers can create cardinality and performance issues, especially versions prior to 3.0. Query limitations can create chalanges for complex fincial analysis. Additionally, the trading team is likely to be more familiar with tradional financial time-series databases like KDB+.
 
 `Redis` is an in-memory data store that supports a queue used to push real-time parameter updates to the pricing engine. I also use it to store stock parameters, but, in production, it would be stored in a RDBMS.
 
@@ -61,3 +63,7 @@ There is no multi-user support and some UX features are lacking.
 * Refactoring: there's a fair amount of boileplate code or inaptly named variables and functions.
 * The pricing engine should be factored into a robust job queue with retry cababilities.
 * Reliability, Fault-tolerance, and auto-scaling provisions.
+* Iac (Dockerfile, K8s, Terraform)
+* Design a mechanism to autocompile client side code. Pagination, HATEOAS, PATCH for updates,
+* Move from Postman to a more robust API manager like Swagger (OpenAPI) to provide superior documentation capabilities and auto-generate client side SDKs.
+* In this application, the state update logic is not complex enough to extract stocks in a reducer.

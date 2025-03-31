@@ -1,103 +1,64 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { AgCharts } from "ag-charts-react";
 import { Stock } from "../types";
+import {AgChartOptions, AgChartCaptionOptions, AgLineSeriesOptions} from "ag-charts-community";
 
-import { getPriceHistory, getFeed } from "../api/pricing";
+import {FeedData} from "../types";
+import { getPriceHistory, getFeed } from "../pricingAPI";
 const pollingFrequency = 4000; // 60000 is 1 minute 6000 is 6 seconds
 
 interface StockChartProps {
   selectedStocks: Stock[];
 }
 
+// contains a timestamp and ticker: price key-value pairs
+interface PriceDataPoint { [key: string]: number | Date }
+
+
 export default function StockChart({ selectedStocks }: StockChartProps) {
-  // State for chart data and error handling
-  const lastTimestamp = useState<string | null>(null);
-  const [chartData, setChartData] = useState([]);
-  const [error, setError] = useState<string | null>(null);
 
-  // Define chart series with enhanced tooltip
+  // const lastTimestamp = useState<string | null>(null);
+  const [chartData, setChartData] = useState<PriceDataPoint[]>([]);
+  const chartLastTimestampRef = useRef<Date | null>(null);
+
+  // Unlike Series data, Series definitions chage only when selected stocks change
+  // useMemo prevents re-computing series when data changes
   const series = useMemo(() => {
-    const tickers = selectedStocks.map((stock: Stock) => stock.ticker);
-    return tickers.map((ticker) => ({
-      type: "line",
-      xKey: "timestamp",
-      yKey: ticker,
-      yName: ticker,
-      marker: { enabled: false },
-      tooltip: {
-        renderer: (params) => {
-          const { datum, xKey, yKey, title } = params;
-          const date = datum[xKey];
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, "0");
-          const day = String(date.getDate()).padStart(2, "0");
-          const hours = String(date.getHours()).padStart(2, "0");
-          const minutes = String(date.getMinutes()).padStart(2, "0");
-          const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
-          const value = datum[yKey].toFixed(2);
-          return `${title}: $${value} at ${formattedDate}`;
-        },
-      },
-    }));
+    return makeSeries(selectedStocks);
   }, [selectedStocks]);
-
-  // efine chart axes with custom date and currency formatting
-  const axes = [
-    {
-      type: "time",
-      position: "bottom",
-      label: {
-        format: "%Y-%m-%d %H:%M",
-      },
-    },
-    {
-      type: "number",
-      position: "left",
-      label: {
-        formatter: (params) => `$${params.value.toFixed(2)}`,
-      },
-    },
-  ];
-
+  
   // Effect to fetch historical data and set up periodic updates
   useEffect(() => {
+
     const fetchHistoricalData = async () => {
-      try {
-        if (selectedStocks.length === 0) {
-          setChartData([]);
-          setError(null);
-          return;
-        }
-        const tickers = selectedStocks.map((stock: Stock) => stock.ticker);
-        const data = await getPriceHistory(tickers);
-        const processedData = data.timestamp.map((timestamp: string, index: number) => {
-          const dataPoint: { [key: string]: any } = { timestamp: new Date(timestamp) };
-          data.price_history.forEach((stock: { ticker: string; prices: number[] }) => {
-            dataPoint[stock.ticker] = stock.prices[index];
-          });
-          return dataPoint;
-        });
-        setChartData(processedData);
-        setError(null);
-      } catch (error: any) {
-        console.error("Failed to fetch historical data:", error);
-        setError(error.message);
-        setChartData([]);
+
+      if (selectedStocks.length === 0) {
+        return;
       }
+
+      const tickers = selectedStocks.map((stock: Stock) => stock.ticker);
+      const data = await getPriceHistory(tickers);
+
+      const priceData: PriceDataPoint[] = data.timestamp.map((timestamp: string, index: number) => {
+        const priceDataPoint: PriceDataPoint = { timestamp: new Date(timestamp) }; // fix this type
+        data.price_history.forEach((stock: { ticker: string; prices: number[] }) => {
+          priceDataPoint[stock.ticker] = stock.prices[index];
+        });
+        return priceDataPoint;
+      });
+
+      setChartData(priceData as PriceDataPoint[]); // fix this type
+      chartLastTimestampRef.current = priceData[priceData.length - 1].timestamp as Date;
     };
 
-    
-
-    const processNewData = (feedData: { feed: { ticker: string; price: number; timestamp: string }[] }) => {
-      const newDataPoint: { [key: string]: any } = {
-        timestamp: new Date(feedData.feed[0].timestamp),
-      };
+    const makeNewFeedDataPoint = (feedData: FeedData) => {
+      const newPricePoint: PriceDataPoint = { timestamp: new Date(feedData.feed[0].timestamp), };
       feedData.feed.forEach((item) => {
-        newDataPoint[item.ticker] = item.price;
+        newPricePoint[item.ticker] = item.price;
       });
-      return newDataPoint;
+      return newPricePoint;
     };
 
     fetchHistoricalData();
@@ -106,14 +67,23 @@ export default function StockChart({ selectedStocks }: StockChartProps) {
       if (selectedStocks.length === 0 ) {
         return;
       }
-      try {
-        const tickers = selectedStocks.map((stock: Stock) => stock.ticker);
-        const newData = await getFeed(tickers);
-        const newDataPoint = processNewData(newData);
-        setChartData((prevData) => [...prevData, newDataPoint]);
-      } catch (error) {
-        console.error("Failed to fetch feed data:", error);
+      const tickers = selectedStocks.map((stock: Stock) => stock.ticker);
+      const newFeedData = await getFeed(tickers);
+      const newPricePoint = makeNewFeedDataPoint(newFeedData);
+
+      console.log(chartLastTimestampRef.current)
+      console.log(newPricePoint.timestamp)
+
+      const lastTime = newPricePoint.timestamp as Date;
+
+      if ((chartLastTimestampRef.current) && (chartLastTimestampRef.current.getTime() === lastTime.getTime())) {
+        console.log("Skipping duplicate timestamp");
+        return
       }
+      
+      console.log("Adding new price point");
+      chartLastTimestampRef.current = lastTime;
+      setChartData((prevPriceData) => [...prevPriceData, newPricePoint] as PriceDataPoint[]);
     }, pollingFrequency);
 
     return () => clearInterval(intervalId);
@@ -122,49 +92,61 @@ export default function StockChart({ selectedStocks }: StockChartProps) {
   // Compute chart options with repositioned legend
   const chartOptions = useMemo(() => {
     return {
-      data: chartData,
+      axes: stockChartAxes,
+      legend: { enabled: true, position: "bottom" },
+      title: {text: "Stock Prices"} as AgChartCaptionOptions,
       series,
-      axes,
-      legend: {
-        enabled: true,
-        position: "bottom",
-      },
-      navigator: {
-        enabled: true,
-        height: 40,
-        miniChart: {
-          enabled: true,
-        },
-      },
-      zoom: {
-        enabled: true,
-      },
-      initialState: {
-        zoom: {
-          ratioX: { start: 0.9, end: 1 },
-        },
-      },
-    };
-  }, [chartData, series, axes]);
+      data: chartData,
+    } as AgChartOptions;
+  }, [chartData, series]);
 
   // Render logic
-  if (error) {
-    return (
-      <div className="w-full h-full flex items-center justify-center">
-        Error: {error}
-      </div>
-    );
-  } else if (chartData.length > 0) {
-    return (
-      <div className="w-full h-full">
-        <AgCharts className="w-full h-full" options={chartOptions} />
-      </div>
-    );
-  } else {
-    return (
-      <div className="w-full h-full flex items-center justify-center">
-        Select stocks...
-      </div>
-    );
-  }
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      {(chartData.length > 0) ? <AgCharts className="w-full h-full" options={chartOptions} /> : <p>Select stocks...</p>}
+    </div>
+  );
 }
+
+
+function makeSeries(stocks: Stock[]): AgLineSeriesOptions[] {
+  const tickers = stocks.map((stock: Stock) => stock.ticker);
+  return tickers.map((ticker) => ({
+    type: "line",
+    xKey: "timestamp",
+    yKey: ticker,
+    yName: ticker,
+    marker: { enabled: false },
+    tooltip: {
+      renderer: (params) => {
+        const { datum, xKey, yKey, title } = params;
+        const date = datum[xKey];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+        const value = datum[yKey].toFixed(2);
+        return `${title}: $${value} at ${formattedDate}`;
+      },
+    },
+  } as AgLineSeriesOptions));
+}
+
+const stockChartAxes = [
+  {
+    type: "time",
+    position: "bottom",
+    label: {
+      format: "%Y-%m-%d %H:%M",
+    },
+  },
+  {
+    type: "number",
+    position: "left",
+    label: {
+      formatter: (params: { value: number; }) => `$${params.value.toFixed(2)}`,
+    },
+  },
+]

@@ -2,6 +2,7 @@ services:
 
   pricing_engine:
     command: python bmo_pricing_engine.py
+    restart: on-failure:5
     image: pricing_engine
     build: ./pricing_engine
     volumes:
@@ -29,6 +30,7 @@ services:
   bff:
     image: bff
     build: ./bff
+    restart: on-failure:5
     ports:
       - "8080:8080" # Map host port 8080 to container port 8080
     environment:
@@ -46,10 +48,11 @@ services:
     image: redis:6-alpine
     ports:
       - "6379:6379"
-    restart: always
+    restart: on-failure:5
 
   influx_db:
     image: influxdb:2.7-alpine
+    restart: on-failure:5
     ports:
       - 8086:8086
     # volumes:

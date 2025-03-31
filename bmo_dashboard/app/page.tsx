@@ -11,7 +11,7 @@ import StockSearchModule from "./components/StockSearchModule";
 import ParameterUpdateModule from "./components/ParameterUpdateModule";
 
 import { Stock } from "./types";
-import { fetchStockParameters, updateTickerParameters } from "./api/pricing";
+import { fetchStockParameters, updateTickerParameters } from "./pricingAPI";
 
 export default function Home() {
 
@@ -71,6 +71,7 @@ export default function Home() {
         <StockChart selectedStocks={selectedStocks} />
       </section>
 
+      {/* Display modules if needed */}
       {isPressed && (
         <StockSearchModule
           selectedStocks={selectedStocks}
@@ -86,7 +87,7 @@ export default function Home() {
           updateStockParameters={updateStockParameters}
         />
       )}
-      
+
     </main>
   );
 }

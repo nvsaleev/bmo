@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { GrFormClose } from "react-icons/gr";
 import { Stock } from "../types";
 
-import { fetchAllTickers } from "../api/pricing";
+import { fetchAllTickers } from "../pricingAPI";
 
 interface StockModuleProps {
     selectedStocks: Stock[];

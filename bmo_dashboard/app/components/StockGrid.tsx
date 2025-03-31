@@ -27,9 +27,9 @@ export default function StockGrid({
   const gridRef = useRef<AgGridReact>(null);
 
   const [colDefs] = useState([
-    { field: "ticker", flex: 1 },
-    { field: "volatility", flex: 1 },
-    { field: "drift", flex: 1 },
+    { field: "ticker", flex: 1, headerStyle: { fontWeight: 'bold' } },
+    { field: "volatility", flex: 1, headerStyle: { fontWeight: 'bold' } },
+    { field: "drift", flex: 1, headerStyle: { fontWeight: 'bold' } },
     {
       field: "config",
       headerName: "",

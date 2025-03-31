@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Dispatch, SetStateAction} from 'react';
 
-export default function useCommandK(){
+export default function useCommandK() : [boolean, Dispatch<SetStateAction<boolean>>]{
 
   const [isPressed, setIsPressed] = useState(false);
 
