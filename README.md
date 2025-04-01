@@ -37,7 +37,7 @@ The frontend is served by a light-weight Backend For Frontend (BFF) REST APIs se
 - `POST /api/v1/stocks`: get parameters for each ticker in a list
     - Request: `{ "tickers": ["MSFT","AAPL","GOOG"] }`
     - Resonse: `{ [{"ticker": "MSFT", "drift": 0.2, "volatility": 0.5}, {"ticker": "AAPL", "drift": 0.3, "volatility": 0.4}] }`
-- `PUT /api/v1/stocks`: update parameters for a ticker
+- `PATCH /api/v1/stocks`: update parameters for a ticker
     - Request: `{"ticker": "MSFT", "drift": 0.1, "volatility": 0.2}`
 - `GET /api/v1/stocks/tickers`: get a list of all tickers priced by the engine
     - Response: `{"tickers": ["MSFT","AAPL","GOOG"]}`
@@ -52,19 +52,45 @@ The frontend is served by a light-weight Backend For Frontend (BFF) REST APIs se
 
 ## Frontend
 
-The frontend is `React/Next.js`. The **state** of the application is almost entirely dereminited by list of selected stocks that are passed to the `StockGrid` and `StockChart` components as props. For this reason, state management is done primarally with `useState` and `useEffect`. There's no need to use reducers or context. Similary, the data fetching is simple enough to be done without TanStack Query. This will change as the application grows in complexity. For example, context will be necessary for authentication and authorization.
+The frontend is a `React/Next.js` application. The **state** of the application is almost entirely dereminited by list of selected stocks that are passed to the `StockGrid` and `StockChart` components as props. For this reason, state management is done primarally with `useState` and `useEffect`. There's no need to use reducers or context. Similary, the data fetching is simple enough to be done without TanStack Query. This will change as the application grows in complexity. For example, context will be necessary for authentication and authorization.
 
 The `StockGrid` and `StockChart` components use `AgGrid` and `AgCharts` to display the data. The entreprise versions of these libraries allows to customize grids and charts without deploying significant man-power. e.g. zoom on the chart.
 
 ## Some Next Steps
 
-* Tesing and validation of the model: e.g. annualization conventions for volatility and drift given trading days and trading minutes.
-* UX Improvements like adding ability to zoom in on the Chart (e.g. enable navigator for entreprise version)
-* Data Fetching: while data logic for this applications is simple, we can consider using a dedictated data fetching library like `react-query` or `swr`.
-* Refactoring: there's a fair amount of boileplate code or inaptly named variables and functions.
-* The pricing engine should be factored into a robust job queue with retry cababilities.
-* Reliability, Fault-tolerance, and auto-scaling provisions.
-* Iac (Dockerfile, K8s, Terraform)
-* Design a mechanism to autocompile client side code. Pagination, HATEOAS, PATCH for updates,
-* Move from Postman to a more robust API manager like Swagger (OpenAPI) to provide superior documentation capabilities and auto-generate client side SDKs.
-* In this application, the state update logic is not complex enough to extract stocks in a reducer.
+* **Validation** of the pricing model and testing: timezones, precision, invalid input handling, etc.
+* **UI/UX Improvements** like adding ability to zoom in on the Chart (e.g. enable navigator for entreprise version of AG Grid)
+* **API**: documentation and auto-generate client side SDK's with (Swagger / OpenAPI). More informative response messages and robust data handling (Pagination, HATEOAS). Websockets. A dedictated client-side data fetching library like `TanStack Query` or `swr`.
+* Reliability, Fault-tolerance, and auto-scaling for the pricing engine.
+* **Cloud Deployment**:
+``` yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pricing-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pricing-engine
+  template:
+    metadata:
+      labels:
+        app: pricing-engine
+    spec:
+      containers:
+      - name: pricing-engine
+        image: <your-ecr-repo>/pricing-engine:latest
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        env:
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: INFLUXDB_V2_URL
+          value: "http://influxdb-service:8086"
+```
