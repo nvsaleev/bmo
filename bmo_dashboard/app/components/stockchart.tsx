@@ -7,7 +7,7 @@ import {AgChartOptions, AgChartCaptionOptions, AgLineSeriesOptions} from "ag-cha
 
 import {FeedData} from "../types";
 import { getPriceHistory, getFeed } from "../pricingAPI";
-const pollingFrequency = 2000; // 60000 is 1 minute 6000 is 6 seconds
+const pollingFrequency = 1000; // 60000 is 1 minute 1000 is 1 seconds
 
 interface StockChartProps {
   selectedStocks: Stock[];
@@ -63,9 +63,16 @@ export default function StockChart({ selectedStocks }: StockChartProps) {
     fetchHistoricalData();
 
     const intervalId = setInterval(async () => {
+
       if (selectedStocks.length === 0 ) {
         return;
       }
+
+      // Don't poll if time since last update is less than 57 seconds
+      if (chartLastTimestampRef.current && (new Date().getTime() - chartLastTimestampRef.current.getTime()) < 57000) {
+        return
+      }
+
       const tickers = selectedStocks.map((stock: Stock) => stock.ticker);
       const newFeedData = await getFeed(tickers);
       const newPricePoint = makeNewFeedDataPoint(newFeedData);
