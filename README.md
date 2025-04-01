@@ -1,7 +1,5 @@
 # BMO Pricing Engine
 
-## Overview & Assumptions
-
 In practice, the ecosystem of trading analytics involves differently organized teams using different technologies. For this reason, in this takehome, I emphasized the architecting of an event-driven containerized distributed system that tolerates eventual consistency within a few seconds. The system is designed to support a universe of 50,000 stocks with up to a few thousand DAU who monitor a basket of 50 stocks. At a high level, the application works as follows:
 
 ![Alt text for the image](system_overview.png)

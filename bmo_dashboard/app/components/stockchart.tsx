@@ -7,7 +7,7 @@ import {AgChartOptions, AgChartCaptionOptions, AgLineSeriesOptions} from "ag-cha
 
 import {FeedData} from "../types";
 import { getPriceHistory, getFeed } from "../pricingAPI";
-const pollingFrequency = 4000; // 60000 is 1 minute 6000 is 6 seconds
+const pollingFrequency = 2000; // 60000 is 1 minute 6000 is 6 seconds
 
 interface StockChartProps {
   selectedStocks: Stock[];
@@ -19,7 +19,6 @@ interface PriceDataPoint { [key: string]: number | Date }
 
 export default function StockChart({ selectedStocks }: StockChartProps) {
 
-  // const lastTimestamp = useState<string | null>(null);
   const [chartData, setChartData] = useState<PriceDataPoint[]>([]);
   const chartLastTimestampRef = useRef<Date | null>(null);
 
@@ -49,7 +48,7 @@ export default function StockChart({ selectedStocks }: StockChartProps) {
         return priceDataPoint;
       });
 
-      setChartData(priceData as PriceDataPoint[]); // fix this type
+      setChartData(priceData as PriceDataPoint[]);
       chartLastTimestampRef.current = priceData[priceData.length - 1].timestamp as Date;
     };
 
@@ -70,18 +69,13 @@ export default function StockChart({ selectedStocks }: StockChartProps) {
       const tickers = selectedStocks.map((stock: Stock) => stock.ticker);
       const newFeedData = await getFeed(tickers);
       const newPricePoint = makeNewFeedDataPoint(newFeedData);
-
-      console.log(chartLastTimestampRef.current)
-      console.log(newPricePoint.timestamp)
-
       const lastTime = newPricePoint.timestamp as Date;
 
+      // don't poll and re-render, if pricing data is up to date
       if ((chartLastTimestampRef.current) && (chartLastTimestampRef.current.getTime() === lastTime.getTime())) {
-        console.log("Skipping duplicate timestamp");
         return
       }
       
-      console.log("Adding new price point");
       chartLastTimestampRef.current = lastTime;
       setChartData((prevPriceData) => [...prevPriceData, newPricePoint] as PriceDataPoint[]);
 
