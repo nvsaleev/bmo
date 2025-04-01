@@ -62,7 +62,7 @@ The `StockGrid` and `StockChart` components use `AgGrid` and `AgCharts` to displ
 * **UI/UX Improvements** like adding ability to zoom in on the Chart (e.g. enable navigator for entreprise version of AG Grid)
 * **API**: documentation and auto-generate client side SDK's with (Swagger / OpenAPI). More informative response messages and robust data handling (Pagination, HATEOAS). Websockets. A dedictated client-side data fetching library like `TanStack Query` or `swr`.
 * Reliability, Fault-tolerance, and auto-scaling for the pricing engine.
-* **Cloud Deployment**:
+* **Prod Deployment**:
 ``` yaml
 apiVersion: apps/v1
 kind: Deployment
