@@ -32,9 +32,9 @@ InfluxDB and Redis implement event driven communication betwen the pricing engin
 
 The frontend is served by a light-weight Backend For Frontend (BFF) REST APIs server implemented in `Go` for high performance. Due to time-limitations, the data flow is intirely pull-based: after inital load the frontend polls BFF for updates since `last_timestamp`. If this is unacceptable, push-based approaches can be implemented. For example, a Websockets can subcribe to a `Kafka` topic that serves real-time pricing feed and push data to the dashboard.
 
-> To simplify, I do not make sure that numbers are compunicated as strings. This might cause precision issues in production. Another (unrealitic) assumption is that all stocks are priced at the same timestamp and that no data is missing.
+>Because I send tickers in a JSON body, POST is used to "GET" data. To simplify, I do not make sure that numbers are compunicated as strings. This might cause precision issues in production. Another (unrealitic) assumption is that all stocks are priced at the same timestamp and that no data is missing.
 
-### Endpoints:
+### Endpoints
 
 - `GET /api/v1/tickers`: get a list of all tickers priced by the engine
     - Response: `{"tickers": ["MSFT","AAPL","GOOG"]}`
@@ -46,7 +46,6 @@ The frontend is served by a light-weight Backend For Frontend (BFF) REST APIs se
 - `POST api/v1/prices`: get prices for each ticker in a list.
     - Request: `{ "tickers": ["MSFT","AAPL","GOOG"], "after_timestamp": 1679123200 | null }`
     - Response: `{"timestamps": [], {"ticker1": [123.45, 123.46], ticker2: [103.47, 103.48]}`
-
 
 ## Frontend
 
