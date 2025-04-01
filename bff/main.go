@@ -89,11 +89,11 @@ func main() {
 		})
 	})
 
-	r.HandleFunc("/api/v1/tickers", getStocks).Methods("GET")
-	r.HandleFunc("/api/v1/stocks/feed", getFeed).Methods("POST")
-	r.HandleFunc("/api/v1/stocks/history", getStockPriceHistory).Methods("POST")
 	r.HandleFunc("/api/v1/stocks", updateStockParams).Methods("PUT")
 	r.HandleFunc("/api/v1/stocks", getStockParameters).Methods("POST")
+	r.HandleFunc("/api/v1/stocks/tickers", getStocks).Methods("GET")
+	r.HandleFunc("/api/v1/stocks/feed", getFeed).Methods("POST")
+	r.HandleFunc("/api/v1/stocks/prices", getStockPriceHistory).Methods("POST")
 
 	http.ListenAndServe(":8080", r)
 }

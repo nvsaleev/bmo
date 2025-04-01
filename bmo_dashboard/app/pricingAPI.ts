@@ -41,7 +41,7 @@ export async function updateTickerParameters(ticker: string, newDrift: number, n
 
 export async function fetchAllTickers(): Promise<string[]> {
 
-  const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/tickers` : 'http://localhost:8080/api/v1/tickers';
+  const stocksUrl = process.env.BFF_HOST ? `${process.env.BFF_HOST}/api/v1/stocks/tickers` : 'http://localhost:8080/api/v1/stocks/tickers';
   const response = await fetch(stocksUrl);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -71,7 +71,7 @@ export async function getFeed(tickers: string[]): Promise<FeedData> {
 
 export async function getPriceHistory(tickers: string[]): Promise<StockPriceHistory> {
   
-  const stocksUrl = process.env.BFF_HOST? `${process.env.BFF_HOST}/api/v1/stocks/history`: "http://localhost:8080/api/v1/stocks/history";
+  const stocksUrl = process.env.BFF_HOST? `${process.env.BFF_HOST}/api/v1/stocks/prices`: "http://localhost:8080/api/v1/stocks/prices";
   const response = await fetch(stocksUrl, {
     method: "POST",
     headers: {
